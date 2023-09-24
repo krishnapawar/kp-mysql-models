@@ -15,7 +15,8 @@ const {
   update,
   dbJoin,
   dbWith,
-} = require("kp-mysql-models");```
+} = require("kp-mysql-models");
+```
 
 
 >first you have to setup mysql connection call setBDConnection() method to connect database with lib.
@@ -83,7 +84,6 @@ const data = await get({
 *** dbJoin for using mysql all types join ***
 
 ```JavaScript
-
 const dataj = await dbJoin({
       table: "users",
       limit: 10,
@@ -117,7 +117,7 @@ const dataj = await dbJoin({
     });
 ```
 
-***you can also you for this method for join mutipal table***
+*** you can also you for this method for join mutipal table ***
 
 ```JavaScript
 const data = await dbWith({
@@ -161,7 +161,7 @@ const data = await dbWith({
     });
 ```
 
-***using with() method with first method to get data in specific variable in object ***
+*** using with() method with first method to get data in specific variable in object ***
 
 ```JavaScript
 const data = await first({
@@ -237,25 +237,37 @@ where: {
         id: 1223,
       }
 
+*********************************
+
 whereOr: {
         id: 1223,
       }
 
+*********************************
 whereIn: {
         id: [1, 1221],
       },
+
+*********************************
 
 whereNotIn: {
         id: [1, 1221],
       },
 
+*********************************
+
 whereIs: {
     last_name: "NULL",
 },
 
+*********************************
+
 whereIsNot: {
         last_name: "NULL",
       },
+
+*********************************
+
 whereRaw:"name='mohan' and age=30 "
 ```
 
@@ -266,24 +278,37 @@ on: {
         id: 1223,
       }
 
+*********************************
+
 onOr: {
         id: 1223,
       }
+
+*********************************
 
 onIn: {
         id: [1, 1221],
       },
 
+*********************************
+
 onNotIn: {
         id: [1, 1221],
       },
+
+*********************************
 
 onIs: {
     last_name: "NULL",
 },
 
+*********************************
+
 onIsNot: {
         last_name: "NULL",
       },
+
+*********************************
+
 onRaw:"name='mohan' and age=30 "
 ```
