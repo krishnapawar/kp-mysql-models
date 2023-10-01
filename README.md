@@ -2,6 +2,8 @@
 
 >The `kp-mysql-models` is a mysql query builder library that simplifies interactions with MySQL databases. It streamlines tasks such as creating, inserting, updating, and deleting records, and handles complex operations like joins, pagination, and conditionals. Its intuitive and efficient approach can greatly expedite development, saving both time and effort.
 
+>***install using cmd*** npm i kp-mysql-models **Or** npm i @krishnapawar/kp-mysql-models
+
 
 > import all method.
 
@@ -35,7 +37,7 @@ setBDConnection(pool);
 ```
 >after that use (call) all methods like 
 ***
->***Somme important methods**
+>**Somme important methods**
 * setBDConnection,
 * get,
 * first,
@@ -49,7 +51,7 @@ setBDConnection(pool);
 * dbJoin,
 * dbWith,
 
->***Exmaples**
+>**Exmaples**
 
 ***first method for geting single data***
 ```JavaScript
@@ -85,10 +87,10 @@ const data = await get({
     });
 
 ```
-***we can make dyanamic pagination with key word (pagination:1) 1 is page name we cane set page limit by (limit:10) key word 10 is 10 data per page***
+***we can make dyanamic pagination with key word (pagination:1) 1 is page No. we can set page limit by (limit:10) key word 10 is 10 data per page***
  
 ```JavaScript
-const data = await dbJoin({
+const data = await get({
       table: "users",
       limit: 10,      
       pagination: 1,

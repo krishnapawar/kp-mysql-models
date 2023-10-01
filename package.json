@@ -1,6 +1,6 @@
 {
   "name": "@krishnapawar/kp-mysql-models",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "The `kp-mysql-models` library simplifies MySQL database interaction, streamlining tasks such as creating, inserting, updating, and deleting records, as well as handling complex queries like joins, pagination, and conditional operations. By offering an intuitive and efficient approach, it significantly reduces development time and effort.",
   "main": "lib/index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "url": "git+https://github.com/krishnapawar/kp-mysql-models.git"
   },
   "keywords": [
-    "kp-mysql-models","mysql models","mysql query builder","query builder","mysql builder","kp","krishna pawar","krishnapawar"
+    "kp-mysql-models","@krishnapawar/kp-mysql-models","mysql models","mysql query builder","query builder","mysql builder","kp","krishna pawar","krishnapawar"
   ],
   "author": "krishna pawar <krishnapawar90906@gmail.com",
   "license": "ISC",
