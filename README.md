@@ -1,6 +1,6 @@
 # kp-mysql-models
 
->The `kp-mysql-models` library simplifies interactions with MySQL databases. It streamlines tasks such as creating, inserting, updating, and deleting records, and handles complex operations like joins, pagination, and conditionals. Its intuitive and efficient approach can greatly expedite development, saving both time and effort.
+>The `kp-mysql-models` is a mysql query builder library that simplifies interactions with MySQL databases. It streamlines tasks such as creating, inserting, updating, and deleting records, and handles complex operations like joins, pagination, and conditionals. Its intuitive and efficient approach can greatly expedite development, saving both time and effort.
 
 
 > import all method.
@@ -35,18 +35,22 @@ setBDConnection(pool);
 ```
 >after that use (call) all methods like 
 ***
+>***Somme important methods**
+* setBDConnection,
 * get,
 * first,
-* save,
+* dbQuery,
+* trunCate,
+* deleleAll,
+* destroy,
 * create,
 * update,
+* save,
 * dbJoin,
-* dbWith,. 
+* dbWith,
 
 >***Exmaples**
-```JavaScript
-let page = req.query.page;
-```
+
 ***first method for geting single data***
 ```JavaScript
 const data = await first({
@@ -81,10 +85,21 @@ const data = await get({
     });
 
 ```
-*** dbJoin for using mysql all types join ***
-
+***we can make dyanamic pagination with key word (pagination:1) 1 is page name we cane set page limit by (limit:10) key word 10 is 10 data per page***
+ 
 ```JavaScript
-const dataj = await dbJoin({
+const data = await dbJoin({
+      table: "users",
+      limit: 10,      
+      pagination: 1,
+    });
+```
+***dbJoin for using mysql all types join***
+```JavaScript
+let page = req.query.page;
+```
+```JavaScript
+const data = await dbJoin({
       table: "users",
       limit: 10,
       select: [
@@ -117,7 +132,7 @@ const dataj = await dbJoin({
     });
 ```
 
-*** you can also you for this method for join mutipal table ***
+***you can also use for this method for join mutipal table***
 
 ```JavaScript
 const data = await dbWith({
@@ -161,7 +176,7 @@ const data = await dbWith({
     });
 ```
 
-*** using with() method with first method to get data in specific variable in object ***
+***using with() method using with first method to fetch data in specific variable in object***
 
 ```JavaScript
 const data = await first({
@@ -190,9 +205,39 @@ const data = await first({
       },
     });
 ```
+***using with() method using with get method to fetch data in specific variable in object***
+
+```javaScript
+const data = await get({
+      table: "users",
+      select: ["id", "created_by_id", "first_name", "last_name"],
+      with: {
+        doctor: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          connect: {
+            user_id: "id",
+          },
+        },
+        clinic: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          connect: {
+            doctor_id: "id",
+          },
+        },
+      },
+      where: {
+        created_by_id: "1",
+      },
+    }); 
+```
+
 ***create method using for create data***
 ```JavaScript
-const dataj = await create({
+const data = await create({
       table: "users",
       elements: {
         first_name: "ram",
@@ -228,7 +273,7 @@ const dataj = await save({
     });
 ```
 
-*** some usefull method that can help with that method ***
+***some usefull method that can help with that method***
 ***
 where opration
 ---
