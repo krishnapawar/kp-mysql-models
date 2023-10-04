@@ -2,7 +2,9 @@
 
 >The `kp-mysql-models` is a mysql query builder library that simplifies interactions with MySQL databases. It streamlines tasks such as creating, inserting, updating, and deleting records, and handles complex operations like joins, pagination, and conditionals. Its intuitive and efficient approach can greatly expedite development, saving both time and effort.
 
->***install using cmd*** npm i kp-mysql-models **Or** npm i @krishnapawar/kp-mysql-models
+>npm i kp-mysql-models
+
+>npm i @krishnapawar/kp-mysql-models
 
 
 > import all method.
@@ -19,8 +21,6 @@ const {
   dbWith,
 } = require("kp-mysql-models");
 ```
-
-
 >first you have to setup mysql connection call setBDConnection() method to connect database with lib.
 
 ```JavaScript
@@ -35,7 +35,7 @@ var pool = mysql.createPool({
 
 setBDConnection(pool);
 ```
->after that use (call) all methods like 
+>after that use (call) all methods like helper function in you code
 ***
 >**Somme important methods**
 * setBDConnection,
@@ -50,6 +50,7 @@ setBDConnection(pool);
 * save,
 * dbJoin,
 * dbWith,
+* BaseModels
 
 >**Exmaples**
 
@@ -95,6 +96,64 @@ const data = await get({
       limit: 10,      
       pagination: 1,
     });
+```
+***using with() method using with first method to fetch data in specific variable in object***
+
+```JavaScript
+const data = await first({
+      table: "users",
+      select: ["id", "first_name", "last_name"],
+      with: {
+        doctor: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          connect: {
+            user_id: "id",
+          },
+        },
+        clinic: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          connect: {
+            doctor_id: "id",
+          },
+        },
+      },
+      where: {
+        id: 585,
+      },
+    });
+```
+***using with() method using with get method to fetch data in specific variable in object***
+
+```javaScript
+const data = await get({
+      table: "users",
+      select: ["id", "created_by_id", "first_name", "last_name"],
+      with: {
+        doctor: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          connect: {
+            user_id: "id",
+          },
+        },
+        clinic: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          connect: {
+            doctor_id: "id",
+          },
+        },
+      },
+      where: {
+        created_by_id: "1",
+      },
+    }); 
 ```
 ***dbJoin for using mysql all types join***
 ```JavaScript
@@ -177,66 +236,6 @@ const data = await dbWith({
       pagination: page,
     });
 ```
-
-***using with() method using with first method to fetch data in specific variable in object***
-
-```JavaScript
-const data = await first({
-      table: "users",
-      select: ["id", "first_name", "last_name"],
-      with: {
-        doctor: {
-          table: "appointments",
-          limit: 2,
-          select: ["id", "user_id"],
-          connect: {
-            user_id: "id",
-          },
-        },
-        clinic: {
-          table: "appointments",
-          limit: 2,
-          select: ["id", "user_id"],
-          connect: {
-            doctor_id: "id",
-          },
-        },
-      },
-      where: {
-        id: 585,
-      },
-    });
-```
-***using with() method using with get method to fetch data in specific variable in object***
-
-```javaScript
-const data = await get({
-      table: "users",
-      select: ["id", "created_by_id", "first_name", "last_name"],
-      with: {
-        doctor: {
-          table: "appointments",
-          limit: 2,
-          select: ["id", "user_id"],
-          connect: {
-            user_id: "id",
-          },
-        },
-        clinic: {
-          table: "appointments",
-          limit: 2,
-          select: ["id", "user_id"],
-          connect: {
-            doctor_id: "id",
-          },
-        },
-      },
-      where: {
-        created_by_id: "1",
-      },
-    }); 
-```
-
 ***create method using for create data***
 ```JavaScript
 const data = await create({
@@ -274,6 +273,70 @@ const dataj = await save({
       // },
     });
 ```
+
+>using your modele class by extendes BaseModels class for Example 
+
+```JavaScript
+const { BaseModels } = require("kp-mysql-models");
+const { pool } =require("./db");
+
+class User extends BaseModels{
+    constructor(){
+        super();
+        this._table="users";
+        this._connection=pool;
+    }
+}
+module.exports= User;
+```
+>You can access all methods after make User class object for Example
+```JavaScript
+let user = new User;
+
+let data = await user.first();
+let data = await user.get();
+```
+>or you can use same like abow example.
+
+```JavaScript
+let data = await user.get({
+      select: ["id", "firstname", "lastname"],
+      with: {
+        doctor: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          connect: {
+            user_id: "id",
+          },
+        },
+        clinic: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          connect: {
+            doctor_id: "id",
+          },
+        },
+      },
+      where: {
+        id: 585,
+      },
+    });
+
+```
+>You can use all method same like that
+* get,
+* first,
+* dbQuery,
+* trunCate,
+* deleleAll,
+* destroy,
+* create,
+* update,
+* save,
+* dbJoin,
+* dbWith,
 
 ***some usefull method that can help with that method***
 ***
