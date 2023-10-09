@@ -1,6 +1,6 @@
 {
   "name": "@krishnapawar/kp-mysql-models",
-  "version": "1.2.0",
+  "version": "1.2.3",
   "description": "The `kp-mysql-models` library simplifies MySQL database interaction, streamlining tasks such as creating, inserting, updating, and deleting records, as well as handling complex queries like joins, pagination, and conditional operations. By offering an intuitive and efficient approach, it significantly reduces development time and effort.",
   "main": "lib/index.js",
   "scripts": {
