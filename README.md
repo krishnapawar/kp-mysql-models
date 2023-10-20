@@ -2,16 +2,16 @@
 
 >The `kp-mysql-models` is a mysql query builder library that simplifies interactions with MySQL databases. It streamlines tasks such as creating, inserting, updating, and deleting records, and handles complex operations like joins, pagination, and conditionals. Its intuitive and efficient approach can greatly expedite development, saving both time and effort.
 
->npm i kp-mysql-models
+> npm i kp-mysql-models
 
->npm i @krishnapawar/kp-mysql-models
+> npm i @krishnapawar/kp-mysql-models
 
 
 > import all method.
 
 ```JavaScript
 const {
-  setBDConnection,
+  setDBConnection,
   get,
   first,
   save,
@@ -33,7 +33,7 @@ var pool = mysql.createPool({
   database: "test",
 });
 
-setBDConnection(pool);
+setDBConnection(pool);
 ```
 >after that use (call) all methods like helper function in you code
 ***
@@ -296,6 +296,38 @@ let user = new User;
 let data = await user.first();
 let data = await user.get();
 ```
+
+>We can use soft delete as well by using BaseModels class for Example
+```JavaScript
+let user = new User;
+
+//for soft deleteing data
+
+let data = await user.trashed({
+  where: {
+        id: 585,
+      }
+});
+
+//for soft deleteing restoring data
+let data = await user.restore({
+  where: {
+        id: 585,
+      }
+});
+
+//for fetch soft deleted data useing onlyTrashed:true;
+let data = await user.first({ 
+        onlyTrashed:true,
+        where: {
+              id: 585,
+            }
+       });
+
+let data = await user.get({ onlyTrashed:true });
+
+```
+
 >or you can use same like abow example.
 
 ```JavaScript
@@ -325,18 +357,55 @@ let data = await user.get({
     });
 
 ```
->You can use all method same like that
+>Some Important methods that You can also use,
 * get,
 * first,
 * dbQuery,
 * trunCate,
 * deleleAll,
 * destroy,
+* delete,
 * create,
 * update,
 * save,
 * dbJoin,
 * dbWith,
+* tracested,
+* restore,
+
+
+>Some Important Key Words that can help in abow methods,
+
+* table,
+* select,
+* elements,
+* latest,
+* limit,
+* pagination,
+
+* with,
+* connect,
+
+* join,
+* dbWith,
+* hasOne,
+* belongsTo,
+
+* where,
+* whereOr,
+* whereIn,
+* whereNotIn,
+* whereIs,
+* whereRaw,
+
+* on,
+* onOr,
+* onIn,
+* onNotIn,
+* onIs,
+* onRaw,
+
+* onlyTrashed,
 
 ***some usefull method that can help with that method***
 ***
