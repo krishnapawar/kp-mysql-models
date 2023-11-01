@@ -1,6 +1,6 @@
 # kp-mysql-models
 
->The `kp-mysql-models` is a mysql query builder library that simplifies interactions with MySQL databases. It streamlines tasks such as creating, inserting, updating, and deleting records, and handles complex operations like joins, pagination, and conditionals. Its intuitive and efficient approach can greatly expedite development, saving both time and effort.
+>The `kp-mysql-models` is a mysql query builder light weight library that simplifies interactions with MySQL databases. It streamlines tasks such as creating, inserting, updating, and deleting records, and handles complex operations like joins, pagination, and conditionals. Its intuitive and efficient approach can greatly expedite development, saving both time and effort.
 
 > npm i kp-mysql-models
 
@@ -99,6 +99,7 @@ const data = await get({
 ```
 ***using with() method using with first method to fetch data in specific variable in object***
 
+
 ```JavaScript
 const data = await first({
       table: "users",
@@ -155,6 +156,45 @@ const data = await get({
       },
     }); 
 ```
+>More Examples (using with key) with hasOne, belognsTo, hasMany, connect
+```JavaScript
+    {
+      select:['id','first_name','role_id','created_at'],
+      whereIsNotNull:['last_name'],
+      with:{
+        hasOne_appointment:{
+          select:['id','user_id'],
+          table:"appointments",
+          hasOne:{
+            user_id:'id'
+          }
+        },
+        belongsTo_appointment:{
+          select:['id','user_id'],
+          table:"appointments",
+          belongsTo:{
+            user_id:'id'
+          }
+        },
+        connect_appointment:{
+          select:['id','user_id'],
+          table:"appointments",
+          connect:{
+            user_id:'id'
+          }
+        },
+        hasMany_appointment:{
+          select:['id','user_id'],
+          table:"appointments",
+          hasMany:{
+            user_id:'id'
+          }
+        }
+      }
+    }
+```
+>belongsTo and hasOne give single response with single object data and hasMany and connect give array object response with multiple object data
+
 ***dbJoin for using mysql all types join***
 ```JavaScript
 let page = req.query.page;
@@ -289,17 +329,72 @@ class User extends BaseModels{
 }
 module.exports= User;
 ```
+>No need to connect table name if class name same as table name but without s. for exmaple we have users table then we make User model class. also we sort hand connet database by using super() method; 
+
+>exmple 1
+
+```JavaScript
+const { BaseModels } = require("kp-mysql-models");
+const { pool } =require("./db");
+
+class User extends BaseModels{
+    constructor(){
+        super();
+        this._connection=pool;
+    }
+}
+
+module.exports= User;
+```
+>OR exmple 2
+
+```JavaScript
+class User extends BaseModels{
+    constructor(){
+        super(pool);
+    }
+}
+
+module.exports= User;
+```
+
 >You can access all methods after make User class object for Example
 ```JavaScript
 let user = new User;
 
 let data = await user.first();
 let data = await user.get();
+
+//deleting data 
+let data = await user.delele({
+  where: {
+        id: 585,
+      }
+});
+
+let data = await user.deleleAll();
+
+
+let data = await user.destroy({
+  where: {
+        id: 585,
+      }
+});
+
+//trucate table
+let data = await user.trunCate();
+
 ```
 
 >We can use soft delete as well by using BaseModels class for Example
 ```JavaScript
 let user = new User;
+class User extends BaseModels{
+    constructor(){
+        super(pool);
+        this._softDelete=true;
+    }
+}
 
 //for soft deleteing data
 
@@ -309,12 +404,18 @@ let data = await user.trashed({
       }
 });
 
+//for soft deleteing All data
+let data = await user.trashedAll();
+
 //for soft deleteing restoring data
 let data = await user.restore({
   where: {
         id: 585,
       }
 });
+
+//for soft deleteing restoring All data
+let data = await user.restoreAll();
 
 //for fetch soft deleted data useing onlyTrashed:true;
 let data = await user.first({ 
@@ -370,8 +471,11 @@ let data = await user.get({
 * save,
 * dbJoin,
 * dbWith,
-* tracested,
+* trasted,
 * restore,
+* trastedAll,
+* restoreAll,
+* trunCate,
 
 
 >Some Important Key Words that can help in abow methods,
@@ -385,17 +489,20 @@ let data = await user.get({
 
 * with,
 * connect,
+* hasOne,
+* belongsTo,
+* hasMany,
 
 * join,
 * dbWith,
-* hasOne,
-* belongsTo,
 
 * where,
 * whereOr,
 * whereIn,
 * whereNotIn,
 * whereIs,
+* whereIsNull,
+* whereIsNotNull,
 * whereRaw,
 
 * on,
