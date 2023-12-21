@@ -61,13 +61,42 @@ class User extends BaseModels{
 
 module.exports= User;
 ```
-## Example 2
+## Example 2 diract make database connect using `super(pool)`
 
 ```JavaScript
 class User extends BaseModels{
     constructor(){
         super(pool);
     }
+}
+
+module.exports= User;
+```
+
+## Example 3 `this._hidden` for hidding some colonm by default
+
+```JavaScript
+class User extends BaseModels{
+    constructor(){
+        super(pool);
+        this._hidden=["auth_token","device_token","password","device_type","logout_at","login_at"]
+    }
+}
+
+module.exports= User;
+```
+## Let's more example
+
+```JavaScript
+class BaseModels {
+  constructor(){
+    this._table='users';
+  }
+}
+class BaseModels {
+  constructor(){
+    this._softDelete=true;
+  }
 }
 
 module.exports= User;
