@@ -5,12 +5,18 @@
 
 ```bash
 npm i kp-mysql-models
+```
+```JavaScript
+const { BaseModels } = require("kp-mysql-models");
 ``` 
 ### OR
 
 ```bash
 npm i @krishnapawar/kp-mysql-models
 ```
+```JavaScript
+const { BaseModels } = require("@krishnapawar/kp-mysql-models");
+``` 
 
 ## Usage
 This package provides a set of models for working with MySQL database. It is built on top of the `mysql` npm module
@@ -61,42 +67,13 @@ class User extends BaseModels{
 
 module.exports= User;
 ```
-## Example 2 diract make database connect using `super(pool)`
+## Example 2
 
 ```JavaScript
 class User extends BaseModels{
     constructor(){
         super(pool);
     }
-}
-
-module.exports= User;
-```
-
-## Example 3 `this._hidden` for hidding some colonm by default
-
-```JavaScript
-class User extends BaseModels{
-    constructor(){
-        super(pool);
-        this._hidden=["auth_token","device_token","password","device_type","logout_at","login_at"]
-    }
-}
-
-module.exports= User;
-```
-## Let's more example
-
-```JavaScript
-class BaseModels {
-  constructor(){
-    this._table='users';
-  }
-}
-class BaseModels {
-  constructor(){
-    this._softDelete=true;
-  }
 }
 
 module.exports= User;
@@ -305,44 +282,14 @@ const data = await user.first({
       },
     });
 ```
-***Applying the with() method in conjunction with the get method to retrieve data and store it in a specific variable within an object.***
-
-```javaScript
-const data = await user.get({
-      select: ["id", "created_by_id", "first_name", "last_name"],
-      with: {
-        doctor: {
-          table: "appointments",
-          limit: 2,
-          select: ["id", "user_id"],
-          connect: {
-            user_id: "id",
-          },
-        },
-        clinic: {
-          table: "appointments",
-          limit: 2,
-          select: ["id", "user_id"],
-          connect: {
-            doctor_id: "id",
-          },
-        },
-      },
-      where: {
-        created_by_id: "1",
-      },
-    }); 
-```
-
-
-### Let's See More Examples using with `hasOne`, `belognsTo`, `hasMany`, `connect` in (with:{}).
+***Applying the with() method in conjunction to retrieve data and store it in a specific variable within an object.***
 
 ```JavaScript
     {
       select:['id','first_name','role_id','created_at'],
       whereIsNotNull:['last_name'],
       with:{
-        hasOne_appointment:{
+        single_appointment:{
           select:['id','user_id'],
           table:"appointments",
           hasOne:{
@@ -363,16 +310,56 @@ const data = await user.get({
             user_id:'id'
           }
         },
-        hasMany_appointment:{
+        allAppointment:{
           select:['id','user_id'],
           table:"appointments",
           hasMany:{
             user_id:'id'
           }
-        }
+        },
+        doctor: {
+          table: "users",
+          select: ["id", "user_id"],
+          hasOne: {
+            user_id: "dr_id",
+          },
+        },
       }
     }
 ```
+### Let's See More Examples using with `hasOne`, `belognsTo`, `hasMany`, `connect` in (with:{}).
+
+```javaScript
+const data = await user.get({
+      select: ["id", "created_by_id", "first_name", "last_name"],
+      with: {
+        doctor: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          connect: {
+            user_id: "id",
+          },
+        },
+        clinic: {
+          table: "appointments",
+          limit: 2,
+          where:{
+            role_id="5"
+          },
+          select: ["id", "user_id"],
+          hasMany: {
+            doctor_id: "id",
+          },
+        },
+      },
+      where: {
+        created_by_id: "1",
+      },
+    }); 
+```
+
+
 ***WE can get multi level relational data  using `with`***
 ```javaScript
 let data = await User.get({
@@ -798,4 +785,4 @@ const dataj = await save({
 
 [![Instagram](https://img.shields.io/badge/Instagram-%23E4405F.svg?&style=flat-square&logo=Instagram&logoColor=white)](https://www.instagram.com/krishna_p_15)
 
-[![Twitter](https://img.shields.io/badge/Twitter-%231DA1F2.svg?&style=flat-square&logo=Twitter&logoColor=white)](https://x.com/krishnapawar154)
+[![Twitter](https://img.shields.io/badge/Twitter-%231DA1F2.svg?&style=flat-square&logo=Twitter&logoColor=white)](https://twitter.com/YourTwitterHandle)
