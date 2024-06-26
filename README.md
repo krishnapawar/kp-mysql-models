@@ -35,27 +35,43 @@ var pool = mysql.createPool({
 
 ```
 
->using your modele class by extendes BaseModels class for Example 
+>To align with the instructions for creating a class named after the table (singular form) and using it in your controller, without explicitly connecting to the table name when the class name matches the table name (minus the "s"), you can rewrite the given JavaScript code as follows:
 
 ```JavaScript
-const { BaseModels } = require("kp-mysql-models");
+const { BaseModels } = require("@krishnapawar/kp-mysql-models");
+const { pool } = require("./db");
+
+// Create a model class named after the table in singular form
+class User extends BaseModels {
+    constructor() {
+        super(pool);  // Sort and connect to the database using super() method
+    }
+}
+
+module.exports = User;
+
+// This code snippet imports necessary modules, defines the User class that extends BaseModels, and connects to the database using the super() method, following the given guidelines.
+```
+>In cases where the table or database connection is not automatically established or results in an error, you can manually set the table and database connection within the constructor. Here is the revised code let's take a look:
+
+## Example 1 for table
+
+```JavaScript
+const { BaseModels } = require("@krishnapawar/kp-mysql-models");
 const { pool } =require("./db");
 
 class User extends BaseModels{
     constructor(){
         super();
         this._table="users";
-        this._connection=pool;
     }
 }
 module.exports= User;
 ```
->No need to connect table name if class name same as table name but without s. for exmaple we have users table then we make User model class. also we sort hand connet database by using super() method; 
-
-## Example 1
+## Example 2 for database
 
 ```JavaScript
-const { BaseModels } = require("kp-mysql-models");
+const { BaseModels } = require("@krishnapawar/kp-mysql-models");
 const { pool } =require("./db");
 
 class User extends BaseModels{
@@ -64,20 +80,33 @@ class User extends BaseModels{
         this._connection=pool;
     }
 }
-
 module.exports= User;
 ```
-## Example 2
+## Example 3 
+>We can customize other model settings such as soft delete, hidden fields, and fields to show. Here's how you can implement this:
 
 ```JavaScript
-class User extends BaseModels{
-    constructor(){
-        super(pool);
+const { BaseModels } = require("@krishnapawar/kp-mysql-models");
+const { pool } = require("./db");
+
+class User extends BaseModels {
+    constructor() {
+        super();
+        // Manually set the table name and database connection if not automatically connected
+        this._table = "users";
+        this._connection = pool;
+
+        // Additional model settings
+        this._softDelete = false;            // Disable soft delete functionality
+        this._hidden = ['password'];         // Fields to hide from query results
+        this._show = ['id', 'name', 'email']; // Fields to show in query results
     }
 }
 
-module.exports= User;
+module.exports = User;
+
 ```
+` Note:- ` This code snippet ensures that the table name (users), the database connection (pool) and other settings are explicitly set within the User class `constructor` if they are not automatically handled.
 
 >You can access all methods after make User class object for Example
 ```JavaScript
@@ -109,13 +138,8 @@ let data = await user.trunCate();
 
 >We can use soft delete as well by using BaseModels class for Example
 ```JavaScript
+
 let user = new User;
-class User extends BaseModels{
-    constructor(){
-        super(pool);
-        this._softDelete=true;
-    }
-}
 
 // for soft deleteing data
 
@@ -124,6 +148,9 @@ let data = await user.trashed({
         id: 585,
       }
 });
+
+//or you can use like this
+let data = await user.where("id",585).trashed();
 
 // for soft deleteing All data
 let data = await user.trashedAll();
@@ -134,6 +161,9 @@ let data = await user.restore({
         id: 585,
       }
 });
+
+//or you can use like this
+let data = await user.where("id",585).restore();
 
 //for soft deleteing restoring All data
 let data = await user.restoreAll();
@@ -146,11 +176,64 @@ let data = await user.first({
             }
        });
 
+//or you can use like this
+let data = await user.where("id",585).onlyTrashed().first();
+
 let data = await user.get({ onlyTrashed:true });
 
 ```
 
 >or you can use same like abow example.
+
+***first method for geting single data***
+```JavaScript
+const data = await user.first({
+      select: ["id", "first_name", "last_name"],
+      limit: 10,
+      latest: "id",
+      whereNotIn: {
+        id: [1, 1221],
+      },
+      whereIs: {
+        last_name: "NULL",
+      },
+      where:{
+        id:1
+      }
+    });
+
+//or you can use like this
+const data = await user.select(["id", "first_name", "last_name"])
+    .latest('id')
+    .whereNull('last_name')
+    .whereNotIn('id',[1, 1221])
+    .where("id",1)
+    .limit(10)
+    .first();
+```
+***get methods***
+```JavaScript
+const data = await user.get({
+        select: ["id", "first_name", "last_name"],
+        limit: 10,
+        latest: "id",
+        whereNotIn: {
+          id: [1, 1221],
+        },
+        whereIs: {
+          last_name: "NULL",
+        },
+    });
+
+//or you can use like this
+const data = await user.select(["id", "first_name", "last_name"])
+    .latest('id')
+    .whereNull('last_name')
+    .whereNotIn('id',[1, 1221])
+    .limit(10)
+    .get();
+
+```
 
 ```JavaScript
 let data = await user.get({
@@ -176,40 +259,6 @@ let data = await user.get({
       where: {
         id: 585,
       },
-    });
-
-```
-
-***first method for geting single data***
-```JavaScript
-const data = await first({
-      table: "users",
-      select: ["id", "first_name", "last_name"],
-      limit: 10,
-      latest: "id",
-      whereNotIn: {
-        id: [1, 1221],
-      },
-      whereIs: {
-        last_name: "NULL",
-      },
-      where:{
-        id:1
-      }
-    });
-```
-***get methods***
-```JavaScript
-const data = await user.get({
-        select: ["id", "first_name", "last_name"],
-        limit: 10,
-        latest: "id",
-        whereNotIn: {
-          id: [1, 1221],
-        },
-        whereIs: {
-          last_name: "NULL",
-        },
     });
 
 ```
@@ -657,6 +706,8 @@ const dataj = await save({
 
 19. **raw:**
    - Enables the inclusion of raw SQL expressions in a query, providing flexibility for complex queries and custom database operations. Exercise caution to prevent SQL injection vulnerabilities.
+20. **this._having**
+  - Specifies conditions on aggregated data, similar to the WHERE clause but used for aggregate functions. For example, filtering groups created by GROUP BY.
 
 ## ***Here are the descriptions for the provided `where` and `on` operations with examples***
 ***
