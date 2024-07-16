@@ -659,9 +659,6 @@ id: 1223,
 ## ***collect Method***
 
 ```JavaScript
-const collect = (ar = []) => {
-  return new Collection(ar);
-}
 
 const users = [
   { id: 1, name: 'John Doe', age: 30, contact: { address: 'test', phone: 90876543 } },
