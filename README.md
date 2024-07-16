@@ -666,7 +666,7 @@ const dataj = await save({
    - Restricts the number of records returned in a query, helping manage the quantity of data retrieved.
 
 6. **pagination:**
-   - A technique for breaking down large result sets into smaller, manageable chunks, commonly used for displaying data in paginated user interfaces.
+   - A technique for breaking down large result sets into smaller, manageable chunks, commonly used for displaying data in paginated user interfaces .
 
 7. **with:**
    - Used in ORM frameworks to specify related data that should be retrieved along with the main query, optimizing data retrieval for relationships.
