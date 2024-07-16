@@ -656,7 +656,7 @@ id: 1223,
 },
 });
 ```
-# collect Method
+## ***collect Method***
 
 ```JavaScript
 const collect = (ar = []) => {
@@ -674,22 +674,79 @@ const users = [
 const collection = collect(users);
 
 console.log(collection.where('name', '=', 'John Doe').where('age', '<', 40).first());
+//{ id: 1, name: 'John Doe', age: 30, contact: { address: 'test', phone: 90876543 } }
+
 console.log(collection.whereOr(['name', '=', 'John Doe'], ['age', '<', 30]).toArray());
+// [
+//   { id: 1, name: 'John Doe', age: 30, contact: { address: 'test', phone: 90876543 } },
+//   { id: 2, name: 'Jane Doe', age: 25, contact: { address: 'test1', phone: 908765431 } },
+//   { id: 4, name: 'Peter Parker', age: 28 },
+// ]
+
 console.log(collection.whereIn('name', ['John Doe', 'Jane Doe']).toArray());
+// [
+//   { id: 1, name: 'John Doe', age: 30, contact: { address: 'test', phone: 90876543 } },
+//   { id: 2, name: 'Jane Doe', age: 25, contact: { address: 'test1', phone: 908765431 } },
+// ]
+
 console.log(collection.whereNotIn('name', ['John Doe', 'Jane Doe']).toArray());
+// [
+//   { id: 3, name: 'Mary Jane', age: 35, contact: { address: 'test2', phone: 908765432 } },
+//   { id: 4, name: 'Peter Parker', age: 28 },
+//   { id: 5, name: 'Bruce Wayne', age: 32 },
+// ]
+
 console.log(collection.whereNull('nickname').toArray());
+// [
+//   { id: 1, name: 'John Doe', age: 30, contact: { address: 'test', phone: 90876543 } },
+//   { id: 2, name: 'Jane Doe', age: 25, contact: { address: 'test1', phone: 908765431 } },
+//   { id: 3, name: 'Mary Jane', age: 35, contact: { address: 'test2', phone: 908765432 } },
+//   { id: 4, name: 'Peter Parker', age: 28 },
+//   { id: 5, name: 'Bruce Wayne', age: 32 },
+// ]
+
 console.log(collection.whereNotNull('name').toArray());
+// [
+//   { id: 1, name: 'John Doe', age: 30, contact: { address: 'test', phone: 90876543 } },
+//   { id: 2, name: 'Jane Doe', age: 25, contact: { address: 'test1', phone: 908765431 } },
+//   { id: 3, name: 'Mary Jane', age: 35, contact: { address: 'test2', phone: 908765432 } },
+//   { id: 4, name: 'Peter Parker', age: 28 },
+//   { id: 5, name: 'Bruce Wayne', age: 32 },
+// ]
+
 console.log(collection.pluck('contact').toArray());
+// [
+//   { address: 'test', phone: 90876543 },
+//   { address: 'test1', phone: 908765431 },
+//   { address: 'test2', phone: 908765432 },
+//   undefined,
+//   undefined,
+// ]
 
 
-console.log(collection.pluckDeep('contact.phone').toArray()); // [90876543, 908765431, 908765432, undefined, undefined]
-console.log(collection.where('contact.phone', '>', 908765430).toArray()); // [{ id: 2, ...}, { id: 3, ...}]
-console.log(collection.whereOr(['contact.phone', '=', 90876543], ['contact.address', '=', 'test1']).toArray()); // [{ id: 1, ...}, { id: 2, ...}]
-console.log(collection.whereIn('contact.address', ['test', 'test1']).toArray()); // [{ id: 1, ...}, { id: 2, ...}]
-console.log(collection.whereNotIn('contact.address', ['test', 'test1']).toArray()); // [{ id: 3, ...}, { id: 4, ...}, { id: 5, ...}]
-console.log(collection.whereNull('contact.phone').toArray()); // [{ id: 4, ...}, { id: 5, ...}]
-console.log(collection.whereNotNull('contact.phone').toArray()); // [{ id: 1, ...}, { id: 2, ...}, { id: 3, ...}]
-console.log(collection.pluck('contact.phone').toArray()); //[90876543, 908765431, 908765432, null, null]
+console.log(collection.pluckDeep('contact.phone').toArray()); 
+// [90876543, 908765431, 908765432, undefined, undefined]
+
+console.log(collection.where('contact.phone', '>', 908765430).toArray()); 
+// [{ id: 2, ...}, { id: 3, ...}]
+
+console.log(collection.whereOr(['contact.phone', '=', 90876543], ['contact.address', '=', 'test1']).toArray()); 
+// [{ id: 1, ...}, { id: 2, ...}]
+
+console.log(collection.whereIn('contact.address', ['test', 'test1']).toArray()); 
+// [{ id: 1, ...}, { id: 2, ...}]
+
+console.log(collection.whereNotIn('contact.address', ['test', 'test1']).toArray()); 
+// [{ id: 3, ...}, { id: 4, ...}, { id: 5, ...}]
+
+console.log(collection.whereNull('contact.phone').toArray()); 
+// [{ id: 4, ...}, { id: 5, ...}]
+
+console.log(collection.whereNotNull('contact.phone').toArray()); 
+// [{ id: 1, ...}, { id: 2, ...}, { id: 3, ...}]
+
+console.log(collection.pluck('contact.phone').toArray()); 
+//[90876543, 908765431, 908765432, null, null]
 
 //you can use in chaining as well example
 console.log(collection.where('name', '=', 'John Doe').where('age', '<', 40).first());
