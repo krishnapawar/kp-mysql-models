@@ -606,6 +606,7 @@ const data = await get({
 * dbJoin,
 * dbWith,
 * BaseModels
+* collect
 
 ## ***Let's see more Exmaples***
 
@@ -646,6 +647,241 @@ const dataj = await save({
       // },
     });
 ```
+***deleleAll method using for delete data***
+```JavaScript
+const dataj = await deleteAll({
+table: "users",
+where: {
+id: 1223,
+},
+});
+```
+# collect Method
+
+```JavaScript
+const collect = (ar = []) => {
+  return new Collection(ar);
+}
+
+const users = [
+  { id: 1, name: 'John Doe', age: 30, contact: { address: 'test', phone: 90876543 } },
+  { id: 2, name: 'Jane Doe', age: 25, contact: { address: 'test1', phone: 908765431 } },
+  { id: 3, name: 'Mary Jane', age: 35, contact: { address: 'test2', phone: 908765432 } },
+  { id: 4, name: 'Peter Parker', age: 28 },
+  { id: 5, name: 'Bruce Wayne', age: 32 },
+];
+
+const collection = collect(users);
+
+console.log(collection.where('name', '=', 'John Doe').where('age', '<', 40).first());
+console.log(collection.whereOr(['name', '=', 'John Doe'], ['age', '<', 30]).toArray());
+console.log(collection.whereIn('name', ['John Doe', 'Jane Doe']).toArray());
+console.log(collection.whereNotIn('name', ['John Doe', 'Jane Doe']).toArray());
+console.log(collection.whereNull('nickname').toArray());
+console.log(collection.whereNotNull('name').toArray());
+console.log(collection.pluck('contact').toArray());
+
+
+console.log(collection.pluckDeep('contact.phone').toArray()); // [90876543, 908765431, 908765432, undefined, undefined]
+console.log(collection.where('contact.phone', '>', 908765430).toArray()); // [{ id: 2, ...}, { id: 3, ...}]
+console.log(collection.whereOr(['contact.phone', '=', 90876543], ['contact.address', '=', 'test1']).toArray()); // [{ id: 1, ...}, { id: 2, ...}]
+console.log(collection.whereIn('contact.address', ['test', 'test1']).toArray()); // [{ id: 1, ...}, { id: 2, ...}]
+console.log(collection.whereNotIn('contact.address', ['test', 'test1']).toArray()); // [{ id: 3, ...}, { id: 4, ...}, { id: 5, ...}]
+console.log(collection.whereNull('contact.phone').toArray()); // [{ id: 4, ...}, { id: 5, ...}]
+console.log(collection.whereNotNull('contact.phone').toArray()); // [{ id: 1, ...}, { id: 2, ...}, { id: 3, ...}]
+console.log(collection.pluck('contact.phone').toArray()); //[90876543, 908765431, 908765432, null, null]
+
+//you can use in chaining as well example
+console.log(collection.where('name', '=', 'John Doe').where('age', '<', 40).first());
+
+
+// Get the first item
+const firstUser = collection.first();
+// { id: 1, name: 'John Doe', age: 30 }
+
+// Get the last item
+const lastUser = collection.last();
+// { id: 5, name: 'Bruce Wayne', age: 32 }
+
+// Check if a value exists in the collection
+const containsJohnDoe = collection.contains(users[0]);
+// true
+
+// Get unique items
+const uniqueAges = collection.pluck('age').unique();
+// [30, 25, 35, 28, 32]
+
+// Get the count of items
+const count = collection.count();
+// 5
+
+// Check if the collection is empty
+const isEmpty = collection.isEmpty();
+// false
+
+// Convert collection to plain array
+const array = collection.toArray();
+// same as users
+
+// Chunk the collection into arrays of 2 items each
+const chunked = collection.chunk(2); 
+// [
+//   [{ id: 1, name: 'John Doe', age: 30 }, { id: 2, name: 'Jane Doe', age: 25 }],
+//   [{ id: 3, name: 'Mary Jane', age: 35 }, { id: 4, name: 'Peter Parker', age: 28 }],
+//   [{ id: 5, name: 'Bruce Wayne', age: 32 }]
+// ]
+
+// Order by age in ascending order
+const orderedByAgeAsc = collection.orderBy('age');
+// [
+//   { id: 2, name: 'Jane Doe', age: 25 },
+//   { id: 4, name: 'Peter Parker', age: 28 },
+//   { id: 1, name: 'John Doe', age: 30 },
+//   { id: 5, name: 'Bruce Wayne', age: 32 },
+//   { id: 3, name: 'Mary Jane', age: 35 }
+// ]
+
+// Order by age in descending order
+const orderedByAgeDesc = collection.orderBy('age', 'desc');
+// [
+//   { id: 3, name: 'Mary Jane', age: 35 },
+//   { id: 5, name: 'Bruce Wayne', age: 32 },
+//   { id: 1, name: 'John Doe', age: 30 },
+//   { id: 4, name: 'Peter Parker', age: 28 },
+//   { id: 2, name: 'Jane Doe', age: 25 }
+// ]
+
+const totalAge = collection.sum('age'); // 90
+const averageAge = collection.avg('age'); // 30
+const groupedByAge = collection.groupBy('age');
+// {
+//   30: [{ id: 1, name: 'John Doe', age: 30 }],
+//   25: [{ id: 2, name: 'Jane Doe', age: 25 }],
+//   35: [{ id: 3, name: 'Mary Jane', age: 35 }]
+// }
+
+//data sort
+const sortedByName = collection.sortBy('name')
+
+const phone = collection.values('contact.phone') // [90876543, 908765431, 908765432, undefined, undefined]
+
+const keys = collection.keys().toArray() // ['id', 'name', 'age', 'contact']
+
+// Remove specified keys from the collection
+const withoutAge = collect(users).except(['age']).toArray();
+// [
+//   { id: 1, name: 'John Doe' },
+//   { id: 2, name: 'Jane Doe' },
+//   { id: 3, name: 'Mary Jane' }
+// ]
+
+// Only include specified keys in the collection
+const onlyName = collect(users).only(['name']).toArray();
+// [
+//   { name: 'John Doe' },
+//   { name: 'Jane Doe' },
+//   { name: 'Mary Jane' }
+// ]
+
+// Key the collection by the specified key
+const keyedById = collect(users).keyBy('id').toArray();
+// {
+//   1: { id: 1, name: 'John Doe', age: 30 },
+//   2: { id: 2, name: 'Jane Doe', age: 25 },
+//   3: { id: 3, name: 'Mary Jane', age: 35 }
+// }
+
+// Execute a callback on the collection
+const tapped = collect(users).tap(collection => console.log(collection.count())).toArray();
+// Logs: 3
+// [
+//   { id: 1, name: 'John Doe', age: 30 },
+//   { id: 2, name: 'Jane Doe', age: 25 },
+//   { id: 3, name: 'Mary Jane', age: 35 }
+// ]
+
+```
+
+***Let's see more examples**
+```JavaScript
+const items = [1, [2, 3], [[4, 5]], [[[6]]]];
+const collection = collect(items);
+
+// Flatten the multi-dimensional array
+const flattened = collection.flatten().toArray();
+// [1, 2, 3, 4, 5, 6]
+
+// Flatten the array to a depth of 1
+const flat1 = collection.flat();
+// [1, 2, 3, [4, 5], [[6]]]
+
+// Flatten the array to a depth of 2
+const flat2 = collection.flat(2);
+// [1, 2, 3, 4, 5, [6]]
+
+// Flatten the array completely
+const flatInfinity = collection.flat(Infinity);
+// [1, 2, 3, 4, 5, 6]
+
+// Get items that are present in both collections
+const intersected = collect([1, 2, 3]).intersect([2, 3, 4]).toArray();
+// [2, 3]
+
+// Get items that are in the first collection but not in the second
+const diff = collect([1, 2, 3]).diff([2, 3, 4]).toArray();
+// [1]
+
+
+const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const collection = collect(items);
+
+// Paginate the collection with 3 items per page, and get page 2
+const paginated = collection.paginate(3, 2);
+
+console.log(paginated);
+// {
+//   data: Collection { items: [ 4, 5, 6 ] },
+//   currentPage: 2,
+//   perPage: 3,
+//   totalItems: 10,
+//   totalPages: 4,
+//   from: 4,
+//   to: 6
+// }
+
+// Get the paginated data
+const pageData = paginated.data.toArray();
+// [4, 5, 6]
+
+const numbers = [1, 2, 3, 4, 5, 6];
+const collection = collect(numbers);
+
+// Iterate over each item and log it
+collection.each(item => console.log(item));
+// Logs: 1, 2, 3, 4, 5, 6
+
+// Take the first 3 items
+const firstThree = collection.take(3).toArray();
+// [1, 2, 3]
+
+// Take the last 2 items
+const lastTwo = collection.takeLast(2).toArray();
+// [5, 6]
+
+// Slice the collection from index 2 to 4
+const sliced = collection.slice(2, 4).toArray();
+// [3, 4]
+
+// Reverse the collection
+const reversed = collection.reverse().toArray();
+// [6, 5, 4, 3, 2, 1]
+
+// Splice the collection to remove 2 items from index 2 and add new items
+const spliced = collection.splice(2, 2, 'a', 'b').toArray();
+// [1, 2, 'a', 'b', 5, 6]
+
+```
+
 
 ## ***Some Important Key Words that can help in that methods,***
 ***
@@ -666,7 +902,7 @@ const dataj = await save({
    - Restricts the number of records returned in a query, helping manage the quantity of data retrieved.
 
 6. **pagination:**
-   - A technique for breaking down large result sets into smaller, manageable chunks, commonly used for displaying data in paginated user interfaces.
+   - A technique for breaking down large result sets into smaller, manageable chunks, commonly used for displaying data in paginated user interfaces .
 
 7. **with:**
    - Used in ORM frameworks to specify related data that should be retrieved along with the main query, optimizing data retrieval for relationships.
