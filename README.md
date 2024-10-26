@@ -62,7 +62,7 @@ const { pool } =require("./db");
 
 class User extends BaseModels{
     constructor(){
-        super();
+        super(pool);
         this._table="users";
     }
 }
@@ -112,7 +112,10 @@ module.exports = User;
 ```JavaScript
 let user = new User;
 
+// for single data
 let data = await user.first();
+
+// for all data
 let data = await user.get();
 
 //deleting data 
@@ -131,6 +134,11 @@ let data = await user.destroy({
       }
 });
 
+let data = await user.delete({
+  where: {
+        id: 585,
+      }
+});
 //trucate table
 let data = await user.trunCate();
 
@@ -282,6 +290,7 @@ const data = await user.get({
         limit: 10,      
         pagination: page,
     });
+
 let data = await User.findOne(13);
 ```
 #### findOneById()=> Data get by Id you can also use other condition by using obj like {name:"test", date:"12/10/2023"} or simply id
@@ -474,6 +483,24 @@ const data = await user.dbJoin({
       },
       pagination: page,
     });
+
+//or
+
+let data =  await user
+    .select("users.id as uId,appointments.id,users.first_name,lab.first_name as lab_name")
+    .join('appointments',"users.id", "appointments.patient_id")
+    .innerJoin("users lab","lab.id", "appointments.user_id")
+    .leftJoin("users lab1","lab1.id", "appointments.user_id")
+    .rightJoin("users lab2","lab2.id", "appointments.user_id")
+    .where({
+      "users.id": 1122,
+    })
+    .when(true,(q)=>{
+      return q.where("appointments.id",1489);
+    })
+    .pagination({currentPage:1,perPage:20})
+    .latest("appointments.id")
+    .dbJoin();
 ```
 
 ***you can also use for this method to join mutlipal table***
