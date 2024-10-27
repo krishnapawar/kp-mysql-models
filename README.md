@@ -19,7 +19,7 @@ const { BaseModels } = require("@krishnapawar/kp-mysql-models");
 ``` 
 
 ## Usage
-This package provides a set of models for working with MySQL database. It is built on top of the `mysql` npm module
+This package provides a set of MySQL model for working with MySQL database. It is built on top of the `mysql` npm module
 
 ` Note:- ` for connection mysql we must have use library `mysql` for example.
 
@@ -63,12 +63,12 @@ let data = await User.delete({ where: { id: 585 } });
 let data = await User.truncate();
 
 ```
-##Defining Models
+## Defining Models
 Create model classes by extending BaseModels for each table, with optional customizations for table name and connection settings.
 
 >To align with the instructions for creating a class named after the table (singular form) and using it in your controller, without explicitly connecting to the table name when the class name matches the table name (minus the "s"), you can rewrite the given JavaScript code as follows:
 
-###Steps
+### Steps
 1 Define the User Class: Extend BaseModels to create a model for the users table.
 2 Initialize Connection: Use the super() method to pass the database connection (e.g., pool) to the BaseModels class.
 3 Export the Model: Export User to make it accessible across the project.
