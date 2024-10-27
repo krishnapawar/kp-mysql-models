@@ -34,17 +34,52 @@ var pool = mysql.createPool({
 });
 
 ```
+## Basic Usage Examples
+After configuring the connection, create model using table and db connection:
+```JavaScript
+
+const { BaseModels } = require("@krishnapawar/kp-mysql-models");
+
+let User = new BaseModels({ _table: "users", _connection: pool });
+
+// Retrieve a single record
+let data = await User.first(); // Retrieves the first user record
+let data = await User.where({ where: { id: req.body.id } }).first();
+//or use like this
+let data = await User.first({ where: { id: req.body.id } });
+
+// Retrieve all records
+let data = await User.get(); // Retrieves all records
+let data = await User.where("id", 1).get();
+//or
+let data = await User.get({where:{"id":1}});
+
+// Delete a record
+let data = await User.where("id", 585).delete();
+//or 
+let data = await User.delete({ where: { id: 585 } });
+
+// Truncate the table
+let data = await User.truncate();
+
+```
+##Defining Models
+Create model classes by extending BaseModels for each table, with optional customizations for table name and connection settings.
 
 >To align with the instructions for creating a class named after the table (singular form) and using it in your controller, without explicitly connecting to the table name when the class name matches the table name (minus the "s"), you can rewrite the given JavaScript code as follows:
 
+###Steps
+1 Define the User Class: Extend BaseModels to create a model for the users table.
+2 Initialize Connection: Use the super() method to pass the database connection (e.g., pool) to the BaseModels class.
+3 Export the Model: Export User to make it accessible across the project.
+
 ```JavaScript
 const { BaseModels } = require("@krishnapawar/kp-mysql-models");
-const { pool } = require("./db");
+const { pool } = require("./db");  // Import the pool connection
 
-// Create a model class named after the table in singular form
 class User extends BaseModels {
     constructor() {
-        super(pool);  // Sort and connect to the database using super() method
+        super(pool);  // Connect to the database using super()
     }
 }
 
@@ -142,39 +177,30 @@ let data = await user.delete({
 //trucate table
 let data = await user.trunCate();
 
-```
+// 
+let data = await User.findOne(13);
 
->We can use soft delete as well by using BaseModels class for Example
+
+```
+## Working with Soft Deletes
+>The kp mysql model library supports soft deletes. This allows you to mark records as "deleted" without actually removing them from the database.
 ```JavaScript
 
-let user = new User;
+let user = new User();
 
-// for soft deleteing data
+// Soft delete a record
+let data = await user.trashed({ where: { id: 585 } });
+let data = await user.where("id", 585).trashed();
 
-let data = await user.trashed({
-  where: {
-        id: 585,
-      }
-});
-
-//or you can use like this
-let data = await user.where("id",585).trashed();
-
-// for soft deleteing All data
+// Soft delete all records
 let data = await user.trashedAll();
 
-// for soft deleteing restoring data
-let data = await user.restore({
-  where: {
-        id: 585,
-      }
-});
-
-//or you can use like this
-let data = await user.where("id",585).restore();
-
-//for soft deleteing restoring All data
+// Soft restore all records
 let data = await user.restoreAll();
+
+// Restore a soft-deleted record
+let data = await user.restore({ where: { id: 585 } });
+let data = await user.where("id", 585).restore();
 
 //for fetch soft deleted data useing onlyTrashed:true;
 let data = await user.first({ 
@@ -189,93 +215,20 @@ let data = await user.where("id",585).onlyTrashed().first();
 
 let data = await user.get({ onlyTrashed:true });
 
-```
-
->or you can use same like abow example.
-
-***first method for geting single data***
-```JavaScript
-const data = await user.first({
-      select: ["id", "first_name", "last_name"],
-      limit: 10,
-      latest: "id",
-      whereNotIn: {
-        id: [1, 1221],
-      },
-      whereIs: {
-        last_name: "NULL",
-      },
-      where:{
-        id:1
-      }
-    });
-
-//or you can use like this
-const data = await user.select(["id", "first_name", "last_name"])
-    .latest('id')
-    .whereNull('last_name')
-    .whereNotIn('id',[1, 1221])
-    .where("id",1)
-    .limit(10)
-    .first();
-```
-***get methods***
-```JavaScript
-const data = await user.get({
-        select: ["id", "first_name", "last_name"],
-        limit: 10,
-        latest: "id",
-        whereNotIn: {
-          id: [1, 1221],
-        },
-        whereIs: {
-          last_name: "NULL",
-        },
-    });
-
-//or you can use like this
-const data = await user.select(["id", "first_name", "last_name"])
-    .latest('id')
-    .whereNull('last_name')
-    .whereNotIn('id',[1, 1221])
-    .limit(10)
-    .get();
+// Fetch only soft-deleted records
+let data = await user.get({ onlyTrashed: true });
+//or
+let data = await user..onlyTrashed().get();
 
 ```
+## Dynamic Pagination
+With kp mysql model , you can implement dynamic pagination to control both the page number and the number of records per page. The library offers two approaches to define pagination:
 
-```JavaScript
-let data = await user.get({
-      select: ["id", "firstname", "lastname"],
-      with: {
-        doctor: {
-          table: "appointments",
-          limit: 2,
-          select: ["id", "user_id"],
-          connect: {
-            user_id: "id",
-          },
-        },
-        clinic: {
-          table: "appointments",
-          limit: 2,
-          select: ["id", "user_id"],
-          connect: {
-            doctor_id: "id",
-          },
-        },
-      },
-      where: {
-        id: 585,
-      },
-    });
-
-```
-
-### ***Dyanamic Pagination***
-
-***we can make dyanamic pagination with key word (pagination:1) 1 is page No. we can set page limit by (limit:10) key word 10 is 10 data per page***
+***we can make dyanamic pagination with key word (pagination:1), 1 is page No. we can set page limit by (limit:10) key word 10 is 10 data per page or we can use or method `pagination({currentPage:1,perPage:20})` ***
  
 ```JavaScript
+const data = await user.pagination({currentPage:1,perPage:20}).get();
+//or
 const data = await user.get({
         limit: 10,      
         pagination: 1,
@@ -290,33 +243,103 @@ const data = await user.get({
         limit: 10,      
         pagination: page,
     });
-
-let data = await User.findOne(13);
 ```
-#### findOneById()=> Data get by Id you can also use other condition by using obj like {name:"test", date:"12/10/2023"} or simply id
+## CRUD Operations
+The following methods make data management straightforward by providing options to create, update, or conditionally insert/update records within the database.
 
-```javaScript
-let data = await User.findOneById(13);
+***Use create to insert new data into the database. It automatically maps fields to the table columns.***
+```JavaScript
+let data = await User.create({name,email,password});
 ```
-#### Example find() Method 
-```javaScript
-let data = await User.find({
-    id:12,
-    name:"test", 
-    date:"12/10/2023"
-  });
+***The update method is designed for modifying existing records. Specify fields to update in the elements object and target records using the where clause.***
+```JavaScript
+const dataj = await User.update({
+      elements: {
+        first_name: "ram",
+        last_name: "ji",
+      },
+      where: {
+        id: 1223,
+      }
+    });
 ```
-### ***Database Relation*** 
-***using with() method using with first method to fetch data in specific variable in object***
+***The updateOrCreate method updates data if the record exists, or inserts new data if it doesn’t. Specify the fields to update or insert in elements, and conditions in where. ***
+```JavaScript
+const dataj = await User.updateOrCreate({
+      elements: {
+        first_name: "ram",
+        last_name: "ji",
+      },
+      where: {
+        id: 1223,
+      }
+    });
+```
 
+***The save method can both insert and update records. If a where condition is provided, it updates matching records; otherwise, it creates a new entry.***
+```JavaScript
+const dataj = await User.save({
+      elements: {
+        first_name: "ram",
+        last_name: "ji",
+      },
+      // where: {
+      //   id: 1223,
+      // },
+    });
+```
+
+## Database Relations Using with() Method or with key 
+The with() method in kp mysql model  allows you to establish and query relational data within your models, supporting relationships like `hasOne`, `belongsTo`, `hasMany`, and `connect`. This method lets you fetch related data alongside the main record in a structured way, and you can even build multi-level relationships for nested data retrieval.
 
 ```JavaScript
+const data = await user.select(["id","first_name","last_name"]).with({
+        doctor: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          hasMany: {
+            user_id: "id",
+          },
+        }
+      }).with({
+        clinic: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          hasOne: {
+            doctor_id: "id",
+          },
+        }
+      }).where({id: 585}).first();
+
+//or
 const data = await user.first({
       select: [
           "id", 
           "first_name", 
           "last_name"
         ],
+      with: {
+        doctor: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          hasMany: {
+            user_id: "id",
+          },
+        }
+      },
+      where: {
+        id: 585,
+      },
+    });
+```
+### Let's See More Examples using with `hasOne`, `belognsTo`, `hasMany`, `connect` in (with:{}).
+
+```javaScript
+const data = await user.get({
+      select: ["id", "created_by_id", "first_name", "last_name"],
       with: {
         doctor: {
           table: "appointments",
@@ -329,18 +352,22 @@ const data = await user.first({
         clinic: {
           table: "appointments",
           limit: 2,
+          where:{
+            role_id="5"
+          },
           select: ["id", "user_id"],
-          connect: {
+          hasMany: {
             doctor_id: "id",
           },
         },
       },
       where: {
-        id: 585,
+        created_by_id: "1",
       },
-    });
+    }); 
 ```
-***Applying the with() method in conjunction to retrieve data and store it in a specific variable within an object.***
+### Advanced Examples Using Multiple Relationships
+Specify various types of relationships such as hasOne, belongsTo, and connect for flexible relational querying.
 
 ```JavaScript
     {
@@ -385,40 +412,11 @@ const data = await user.first({
       }
     }
 ```
-### Let's See More Examples using with `hasOne`, `belognsTo`, `hasMany`, `connect` in (with:{}).
 
-```javaScript
-const data = await user.get({
-      select: ["id", "created_by_id", "first_name", "last_name"],
-      with: {
-        doctor: {
-          table: "appointments",
-          limit: 2,
-          select: ["id", "user_id"],
-          connect: {
-            user_id: "id",
-          },
-        },
-        clinic: {
-          table: "appointments",
-          limit: 2,
-          where:{
-            role_id="5"
-          },
-          select: ["id", "user_id"],
-          hasMany: {
-            doctor_id: "id",
-          },
-        },
-      },
-      where: {
-        created_by_id: "1",
-      },
-    }); 
-```
+### Multi-Level Relationship Example
+Retrieve data from multiple nested tables, like users associated with appointments, 
+and each appointment's doctor linked to a clinic.
 
-
-***WE can get multi level relational data  using `with`***
 ```javaScript
 let data = await User.get({
       with:{
@@ -451,7 +449,26 @@ let data = await User.get({
 ```
 > `belongsTo` and `hasOne` give single response with single object data and other hand `hasMany` and `connect`, give array object response with multiple object data `.
 
+## Advanced Joins with dbJoin() Method and dbWith() Method
+The dbJoin() method in kp mysql model enables complex joins for enhanced querying. With options like join, innerJoin, leftJoin, and rightJoin, as well as pagination and sorting, it simplifies fetching related data across tables.
+
 ```JavaScript
+let data =  await user
+    .select("users.id as uId,appointments.id,users.first_name,lab.first_name as lab_name")
+    .join('appointments',"users.id", "appointments.patient_id")
+    .innerJoin("users lab","lab.id", "appointments.user_id")
+    .leftJoin("users lab1","lab1.id", "appointments.user_id")
+    .rightJoin("users lab2","lab2.id", "appointments.user_id")
+    .where({
+      "users.id": 1122,
+    })
+    .when(true,(q)=>{
+      return q.where("appointments.id",1489);
+    })
+    .pagination({currentPage:1,perPage:20})
+    .latest("appointments.id")
+    .dbJoin();
+//or
 const data = await user.dbJoin({
       table: "users",
       limit: 10,
@@ -484,23 +501,6 @@ const data = await user.dbJoin({
       pagination: page,
     });
 
-//or
-
-let data =  await user
-    .select("users.id as uId,appointments.id,users.first_name,lab.first_name as lab_name")
-    .join('appointments',"users.id", "appointments.patient_id")
-    .innerJoin("users lab","lab.id", "appointments.user_id")
-    .leftJoin("users lab1","lab1.id", "appointments.user_id")
-    .rightJoin("users lab2","lab2.id", "appointments.user_id")
-    .where({
-      "users.id": 1122,
-    })
-    .when(true,(q)=>{
-      return q.where("appointments.id",1489);
-    })
-    .pagination({currentPage:1,perPage:20})
-    .latest("appointments.id")
-    .dbJoin();
 ```
 
 ***you can also use for this method to join mutlipal table***
@@ -550,9 +550,109 @@ const data = await user.dbWith({
 ***Note:-*** we can use `left join`, `right join`, `join` and `inner join` instant of `hasOne`, `belognsTo`, `hasMany`, `connect` in `dbJoin()`,`dbWith()` and also with `with`.
 
 
+>Let's see more examples.
+
+***first method for geting single data***
+```JavaScript
+const data = await user.select(["id", "first_name", "last_name"])
+    .latest('id')
+    .whereNull('last_name')
+    .whereNotIn('id',[1, 1221])
+    .where("id",1)
+    .limit(10)
+    .first();
+
+//or you can use like this
+const data = await user.first({
+      select: ["id", "first_name", "last_name"],
+      limit: 10,
+      latest: "id",
+      whereNotIn: {
+        id: [1, 1221],
+      },
+      whereIs: {
+        last_name: "NULL",
+      },
+      where:{
+        id:1
+      }
+    });
+```
+***get methods***
+```JavaScript
+const data = await user.select(["id", "first_name", "last_name"])
+    .latest('id')
+    .whereNull('last_name')
+    .whereNotIn('id',[1, 1221])
+    .limit(10)
+    .get();
+
+//or you can use like this
+const data = await user.get({
+        select: ["id", "first_name", "last_name"],
+        limit: 10,
+        latest: "id",
+        whereNotIn: {
+          id: [1, 1221],
+        },
+        whereIs: {
+          last_name: "NULL",
+        },
+    });
+
+```
+
+```JavaScript
+let data = await user.get({
+      select: ["id", "firstname", "lastname"],
+      with: {
+        doctor: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          connect: {
+            user_id: "id",
+          },
+        },
+        clinic: {
+          table: "appointments",
+          limit: 2,
+          select: ["id", "user_id"],
+          connect: {
+            doctor_id: "id",
+          },
+        },
+      },
+      where: {
+        id: 585,
+      },
+    });
+
+```
+
+#### findOneById()=> Data get by Id you can also use other condition by using obj like {name:"test", date:"12/10/2023"} or simply id
+
+```javaScript
+let data = await User.findOneById(13);
+```
+#### Example find() Method 
+```javaScript
+let data = await User.find({
+    id:12,
+    name:"test", 
+    date:"12/10/2023"
+  });
+```
+
+
 ### Some Important Models methods, we can use all methods by extends BaseModels in our Model,
 * get,
 * first,
+* find
+* findById
+* findOne
+* findOneById
+* findOneByEmail
 * dbQuery,
 * trunCate,
 * deleleAll,
@@ -560,6 +660,7 @@ const data = await user.dbWith({
 * delete,
 * create,
 * update,
+* updateOrCreate,
 * save,
 * dbJoin,
 * dbWith,
@@ -568,6 +669,7 @@ const data = await user.dbWith({
 * trastedAll,
 * restoreAll,
 * trunCate,
+* exists,
 
 ## Helper methods
 
@@ -683,6 +785,126 @@ id: 1223,
 },
 });
 ```
+---
+
+### Key Methods
+
+---
+
+### Basic Query Methods
+
+1. **`table(x)`**
+   - Specifies the table to query.
+   - **Example:** `query.table('users')`
+
+2. **`select(x)`**
+   - Defines columns to select.
+   - **Example:** `query.select(['id', 'name'])`
+
+3. **`latest(x)`**
+   - Sorts records in descending order by a specified column.
+   - **Example:** `query.latest('created_at')`
+
+4. **`limit(x)`**
+   - Limits the number of records returned.
+   - **Example:** `query.limit(10)`
+
+5. **`groupBy(x)`**
+   - Groups records by specified columns.
+   - **Example:** `query.groupBy('status')`
+
+6. **`raw(x)`**
+   - Adds a raw SQL snippet.
+   - **Example:** `query.raw('COUNT(*)')`
+
+7. **`having(x)`**
+   - Adds a `HAVING` clause.
+   - **Example:** `query.having('COUNT(id) > 10')`
+
+8. **`onlyTrashed()`**
+   - Adds a condition to return only "trashed" (deleted) records.
+   - **Example:** `query.onlyTrashed()`
+
+---
+
+### Conditional Querying Methods
+
+9. **`when(c, cb)`**
+   - Executes a callback function if a condition is met.
+   - **Example:** `query.when(userIsAdmin, q => q.where('role', 'admin'))`
+
+10. **`where(c, v=false)`**
+    - Adds a `WHERE` clause with specified conditions.
+    - **Example:** `query.where('status', 'active')`
+
+11. **`whereOr(c, v=false)`**
+    - Adds an `OR WHERE` clause.
+    - **Example:** `query.whereOr('role', 'user')`
+
+12. **`whereIn(column, values)`**
+    - Filters records where the column’s value is in a specified array.
+    - **Example:** `query.whereIn('id', [1, 2, 3])`
+
+13. **`whereNotIn(column, values)`**
+    - Filters records where the column’s value is *not* in a specified array.
+    - **Example:** `query.whereNotIn('status', ['inactive', 'deleted'])`
+
+14. **`whereNull(column)`**
+    - Filters records where the column’s value is `NULL`.
+    - **Example:** `query.whereNull('deleted_at')`
+
+15. **`whereNotNull(column)`**
+    - Filters records where the column’s value is *not* `NULL`.
+    - **Example:** `query.whereNotNull('created_at')`
+
+16. **`whereRaw(c)`**
+    - Adds a raw `WHERE` clause.
+    - **Example:** `query.whereRaw('age > 18')`
+
+---
+
+### Relationship and Pagination Methods
+
+17. **`with(c)`**
+    - Defines relationships to load with the main query (similar to Eloquent's `with`).
+    - **Example:** `query.with({ posts: { ... } })`
+
+18. **`pagination(x)`**
+    - Configures pagination by setting a `currentPage` and `perPage` limit.
+    - **Example:** `query.pagination({ currentPage: 1, perPage: 20 })`
+
+---
+
+### Join Methods
+
+19. **Private Method: `#addJoin(type, table, key, value, cb)`**
+    - Adds a join clause (`JOIN`, `INNER JOIN`, `LEFT JOIN`, or `RIGHT JOIN`) to the query.
+    - Supports sub-joins through callback functions.
+
+20. **`rightJoin(x, y, z, cb=false)`**
+    - Adds a `RIGHT JOIN` clause.
+    - **Example:** `query.rightJoin('comments', 'users.id', 'comments.user_id')`
+
+21. **`innerJoin(x, y, z, cb=false)`**
+    - Adds an `INNER JOIN` clause.
+    - **Example:** `query.innerJoin('posts', 'users.id', 'posts.user_id')`
+
+22. **`join(x, y, z, cb=false)`**
+    - Adds a `JOIN` clause.
+    - **Example:** `query.join('orders', 'users.id', 'orders.user_id')`
+
+23. **`leftJoin(x, y, z, cb=false)`**
+    - Adds a `LEFT JOIN` clause.
+    - **Example:** `query.leftJoin('profile', 'users.id', 'profile.user_id')`
+
+---
+
+### Finalizing the Query
+
+24. **`buildQuery(d=false)`**
+    - Finalizes the query structure.
+    - Returns the full query object (`x`) if `d` is `true`, or the `QueryBuilder` instance itself for chaining.
+
 ## ***collect Method***
 
 ```JavaScript
