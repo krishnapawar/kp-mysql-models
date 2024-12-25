@@ -44,23 +44,34 @@ let User = new BaseModels({ _table: "users", _connection: pool });
 
 // Retrieve a single record
 let data = await User.first(); // Retrieves the first user record
-let data = await User.where({ where: { id: req.body.id } }).first();
+let data = await User.where({  id: req.body.id }).first();
 //or use like this
-let data = await User.first({ where: { id: req.body.id } });
+let data = await User.first({  id: req.body.id });
 
 // Retrieve all records
 let data = await User.get(); // Retrieves all records
 let data = await User.where("id", 1).get();
 //or
-let data = await User.get({where:{"id":1}});
+let data = await User.get({ "id": 1 });
 
 // Delete a record
 let data = await User.where("id", 585).delete();
 //or 
-let data = await User.delete({ where: { id: 585 } });
+let data = await User.delete({ id: 585 });
 
 // Truncate the table
 let data = await User.truncate();
+
+//create table 
+await Table.create({
+                name: "users",
+                status: 'Occupied'
+            });
+
+// update the table
+await Table.where('table_id',3).update({
+                status: 'Occupied'
+            });
 
 ```
 ## Defining Models
@@ -74,6 +85,7 @@ Create model classes by extending BaseModels for each table, with optional custo
 3 Export the Model: Export User to make it accessible across the project.
 
 ```JavaScript
+// suppose tabet name is uses than create file User.js write code like this and use it in controller 
 const { BaseModels } = require("@krishnapawar/kp-mysql-models");
 const { pool } = require("./db");  // Import the pool connection
 
@@ -239,10 +251,10 @@ const data = await user.get({
 ```JavaScript
 let page = req.query.page;
 
-const data = await user.get({
-        limit: 10,      
-        pagination: page,
-    });
+const data = await user.pagination({
+    currentPage:page,
+    perPage:10
+  }).get();
 ```
 ## CRUD Operations
 The following methods make data management straightforward by providing options to create, update, or conditionally insert/update records within the database.
@@ -253,14 +265,9 @@ let data = await User.create({name,email,password});
 ```
 ***The update method is designed for modifying existing records. Specify fields to update in the elements object and target records using the where clause.***
 ```JavaScript
-const dataj = await User.update({
-      elements: {
+const dataj = await User.where({id: 1223}).update({
         first_name: "ram",
-        last_name: "ji",
-      },
-      where: {
-        id: 1223,
-      }
+        last_name: "ji"
     });
 ```
 ***The updateOrCreate method updates data if the record exists, or inserts new data if it doesn’t. Specify the fields to update or insert in elements, and conditions in where. ***
@@ -335,6 +342,150 @@ const data = await user.first({
       },
     });
 ```
+#### The best way you can do same like create ralation in model and than call for example
+```javaScript
+class User extends BaseModel  {
+    constructor() {
+        super(pool);
+    }
+
+    // example 1
+    business(){
+        return this.hasOne('businesses',{'user_id':'id'});
+    }
+
+    // example 2
+    orders(){
+        return this.hasMany('orders',{'business_id':'business_id'},async()=>{
+            return {
+                where:{
+                    order_status:"pending"
+                }
+            }
+        });
+    }
+
+    // example 3
+    order_items(){
+        return this.hasMany('order_items',{'order_id':'order_id'},{
+            where:{
+                status:"pending"
+            }
+        });
+    }
+
+    // example 4
+    menu_item(){
+        return this.belongsTo('menu_items',{'menu_item_id':'menu_item_id'});
+    }
+
+    //set all relation method in init
+    init(){
+        return[
+            this.orders(),
+            this.business(),
+            this.menu_item(),
+            this.order_items()
+        ]
+    }
+    
+}
+
+export default new User;
+
+//calling in controller like this
+
+// example 1
+let data = await User.where('id',1).with('business').get();
+
+//output
+
+=>[
+    {
+        "id": 1,
+        "name": "krish",
+        "email": "krish@test.com",
+        "password": "1weqweq",
+        "role": "staff",
+        "phone": null,
+        "created_at": "2024-12-20T19:36:05.000Z",
+        "updated_at": "2024-12-20T19:36:05.000Z",
+        "business": {
+            "business_id": 1,
+            "user_id": 1,
+            "name": "The Gourmet Kitchen",
+            "address": "123 Flavor Street, Food City",
+            "phone": "123-456-7890",
+            "email": "contact@gourmetkitchen.com",
+            "created_at": "2024-11-01T16:58:28.000Z",
+            "updated_at": "2024-12-20T19:37:03.000Z"
+        }
+    }
+]
+
+// example 2 adding condition in with method
+let data = await User.where('id',1).with('business',{where:{"business_id": 2}}).get();
+
+//output
+
+=>[
+    {
+        "id": 1,
+        "name": "krish",
+        "email": "krish@test.com",
+        "password": "1weqweq",
+        "role": "staff",
+        "phone": null,
+        "created_at": "2024-12-20T19:36:05.000Z",
+        "updated_at": "2024-12-20T19:36:05.000Z",
+        "business": {}
+    }
+]
+
+```
+### Multi-Level Relationship Example
+Retrieve data from multiple nested tables
+
+```javaScript
+// example 3
+let data = await User.where('id',1).with({
+        'business':(q)=>q.setWith({
+            "orders":(q)=>q.setWith({
+                'order_items':(q)=>q.setWith('menu_item')
+                })
+        })
+    }).get();
+
+// example 4 adding condition in with method
+let data = await User.where('id',1).with({
+        'business':(q)=>q.setWith({
+            "orders":(q)=>q.setWith({
+                'order_items':(q)=>q.setWith('menu_item')
+                },{
+                  where:{
+                    "order_id": 1
+                    }
+                })
+        })
+    }).get();
+
+// example 5 adding complex raletion in easy way using with method
+let data = await User.where('id',1).with({
+        'business':(q)=>q.setWith({
+            "orders":(q)=>q.setWith({
+                'order_items':(q)=>q.setWith('menu_item')
+                },{
+                  where:{
+                    "order_id": 1
+                    }
+                })
+        })
+    }).with('menu_item',{where:{id:1}}).get();
+
+//=>Note the key same as relation method name that we write in model 
+
+```
+
 ### Let's See More Examples using with `hasOne`, `belognsTo`, `hasMany`, `connect` in (with:{}).
 
 ```javaScript
@@ -779,10 +930,10 @@ const dataj = await save({
 ***deleleAll method using for delete data***
 ```JavaScript
 const dataj = await deleteAll({
-table: "users",
-where: {
-id: 1223,
-},
+  table: "users",
+  where: {
+    id: 1223,
+  },
 });
 ```
 ---
@@ -904,6 +1055,185 @@ id: 1223,
 24. **`buildQuery(d=false)`**
     - Finalizes the query structure.
     - Returns the full query object (`x`) if `d` is `true`, or the `QueryBuilder` instance itself for chaining.
+
+
+## ***Some Important config Key Words that can help in that methods,***
+***
+
+1. **table:**
+   - Represents the fundamental structure for storing data in a relational database.
+
+2. **select:**
+   - Used to retrieve specific columns from a table, allowing developers to fetch only the necessary data.
+
+3. **elements:**
+   - Denotes individual pieces of data within a table, referring to the distinct values or attributes stored.
+
+4. **latest:**
+   - Facilitates the retrieval of the most recent records from a table based on a specified criterion, often a timestamp.
+
+5. **limit:**
+   - Restricts the number of records returned in a query, helping manage the quantity of data retrieved.
+
+6. **pagination:**
+   - A technique for breaking down large result sets into smaller, manageable chunks, commonly used for displaying data in paginated user interfaces .
+
+7. **with:**
+   - Used in ORM frameworks to specify related data that should be retrieved along with the main query, optimizing data retrieval for relationships.
+
+8. **connect:**
+   - Establishes connections between tables in an ORM framework, enabling the definition of relationships between entities.
+
+9. **hasOne:**
+   - Indicates a one-to-one relationship between tables, specifying that one record in the first table is associated with exactly one record in the second table.
+
+10. **belongsTo:**
+    - Denotes the inverse of a "hasOne" relationship, specifying the table that another table is associated with in a one-to-one relationship.
+
+11. **hasMany:**
+    - Specifies a one-to-many relationship between tables, where one record in the first table can be associated with multiple records in the second table.
+
+12. **join:**
+    - Combines data from multiple tables based on specified conditions, allowing for the retrieval of interconnected information.
+
+13. **dbWith:**
+    - Similar to "with," used in ORM frameworks to specify additional data to be retrieved along with the main query, aiding in optimizing data fetching.
+
+14. **where:**
+    - Filters data based on specified conditions, allowing developers to narrow down the result set to records that meet certain criteria.
+
+15. **whereOr, whereIn, whereNotIn, whereIs, whereIsNull, whereIsNotNull, whereRaw:**
+    - Different variations of the "where" clause, providing flexibility in constructing precise queries with various conditions.
+
+16. **on, onOr, onIn, onNotIn, onIs, onRaw:**
+    - Used in join operations to define conditions under which tables are linked, refining the result set based on specific criteria.
+
+17. **onlyTrashed:**
+    - Used in the context of soft deletes, indicating that only records marked as deleted should be included in the query results.
+
+18. **groupBy:**
+   - Groups query results based on specified columns, allowing for data aggregation using aggregate functions like COUNT or SUM.
+
+19. **raw:**
+   - Enables the inclusion of raw SQL expressions in a query, providing flexibility for complex queries and custom database operations. Exercise caution to prevent SQL injection vulnerabilities.
+20. **this._having**
+  - Specifies conditions on aggregated data, similar to the WHERE clause but used for aggregate functions. For example, filtering groups created by GROUP BY.
+
+## ***Here are the descriptions for the provided `where` and `on` operations with examples***
+***
+
+### Where Operations:
+
+1. **where:-**
+   - Filters records where the 'id' is equal to 1223.
+   ```JavaScript
+    where: {
+            id: 1223,
+          }
+    ```
+
+2. **whereOr:-**
+   - Filters records where the 'id' is equal to 1223 using the logical OR operator, allowing for multiple conditions.
+   ```JavaScript
+    whereOr: {
+                id: 1223,
+            }
+    ```
+
+3. **whereIn:-**
+   - Filters records where the 'id' is either 1 or 1221, allowing for multiple values using the IN clause.
+   ```JavaScript
+        whereIn: {
+                id: [1, 1221],
+            }
+   ```
+
+4. **whereNotIn:-**
+   - Filters records where the 'id' is not in the list [1, 1221], excluding records with specified values.
+   ```JavaScript
+     whereNotIn: {
+             id: [1, 1221],
+            }
+   ```
+
+5. **whereIs:-**
+   - Filters records where the 'last_name' is explicitly set to NULL.
+   ```JavaScript
+        whereIs: {
+            last_name: "NULL",
+        }
+   ```
+ 
+6. **whereIsNot:-**
+   - Filters records where the 'last_name' is not set to NULL.
+   ```JavaScript
+    whereIsNot: {
+            last_name: "NULL",
+            }
+   ```
+
+7. **whereRaw:-**
+   - Allows the use of raw SQL conditions, in this case filtering records where 'name' is 'mohan' and 'age' is 30.
+   ```JavaScript
+    whereRaw:"name='mohan' and age=30 "
+   ```
+
+### On Operations:
+
+1. **on:-**
+   - Specifies a condition for joining tables based on the 'id' being equal to 1223.
+   ```JavaScript
+    on: {
+            id: 1223,
+            }
+   ```
+
+2. **onOr:-**
+   - Specifies a condition for joining tables based on the 'id' being equal to 1223 using the logical OR operator.
+   ```JavaScript
+    onOr: {
+            id: 1223,
+            }
+   ```
+
+3. **onIn:-**
+   - Specifies a condition for joining tables based on the 'id' being either 1 or 1221, using the IN clause.
+   ```JavaScript
+    onIn: {
+            id: [1, 1221],
+            }
+   ```
+
+4. **onNotIn:-**
+   - Specifies a condition for joining tables based on the 'id' not being in the list [1, 1221], excluding certain values.
+   ```JavaScript
+    onNotIn: {
+            id: [1, 1221],
+            }
+   ```
+
+5. **onIs:-**
+   - Specifies a condition for joining tables based on the 'last_name' being explicitly set to NULL.
+   ```JavaScript
+    onIs: {
+        last_name: "NULL",
+    }
+   ```
+
+6. **onIsNot:-**
+   - Specifies a condition for joining tables based on the 'last_name' not being set to NULL.
+   ```JavaScript
+    onIsNot: {
+            last_name: "NULL",
+            }
+    ```
+
+7. **onRaw:-**
+   - Allows the use of raw SQL conditions for joining tables, in this case specifying conditions where 'name' is 'mohan' and 'age' is 30.
+   ```JavaScript
+    onRaw:"name='mohan' and age=30 "
+   ```
+
 
 ## ***collect Method***
 
@@ -1184,184 +1514,6 @@ const spliced = collection.splice(2, 2, 'a', 'b').toArray();
 // [1, 2, 'a', 'b', 5, 6]
 
 ```
-
-
-## ***Some Important Key Words that can help in that methods,***
-***
-
-1. **table:**
-   - Represents the fundamental structure for storing data in a relational database.
-
-2. **select:**
-   - Used to retrieve specific columns from a table, allowing developers to fetch only the necessary data.
-
-3. **elements:**
-   - Denotes individual pieces of data within a table, referring to the distinct values or attributes stored.
-
-4. **latest:**
-   - Facilitates the retrieval of the most recent records from a table based on a specified criterion, often a timestamp.
-
-5. **limit:**
-   - Restricts the number of records returned in a query, helping manage the quantity of data retrieved.
-
-6. **pagination:**
-   - A technique for breaking down large result sets into smaller, manageable chunks, commonly used for displaying data in paginated user interfaces .
-
-7. **with:**
-   - Used in ORM frameworks to specify related data that should be retrieved along with the main query, optimizing data retrieval for relationships.
-
-8. **connect:**
-   - Establishes connections between tables in an ORM framework, enabling the definition of relationships between entities.
-
-9. **hasOne:**
-   - Indicates a one-to-one relationship between tables, specifying that one record in the first table is associated with exactly one record in the second table.
-
-10. **belongsTo:**
-    - Denotes the inverse of a "hasOne" relationship, specifying the table that another table is associated with in a one-to-one relationship.
-
-11. **hasMany:**
-    - Specifies a one-to-many relationship between tables, where one record in the first table can be associated with multiple records in the second table.
-
-12. **join:**
-    - Combines data from multiple tables based on specified conditions, allowing for the retrieval of interconnected information.
-
-13. **dbWith:**
-    - Similar to "with," used in ORM frameworks to specify additional data to be retrieved along with the main query, aiding in optimizing data fetching.
-
-14. **where:**
-    - Filters data based on specified conditions, allowing developers to narrow down the result set to records that meet certain criteria.
-
-15. **whereOr, whereIn, whereNotIn, whereIs, whereIsNull, whereIsNotNull, whereRaw:**
-    - Different variations of the "where" clause, providing flexibility in constructing precise queries with various conditions.
-
-16. **on, onOr, onIn, onNotIn, onIs, onRaw:**
-    - Used in join operations to define conditions under which tables are linked, refining the result set based on specific criteria.
-
-17. **onlyTrashed:**
-    - Used in the context of soft deletes, indicating that only records marked as deleted should be included in the query results.
-
-18. **groupBy:**
-   - Groups query results based on specified columns, allowing for data aggregation using aggregate functions like COUNT or SUM.
-
-19. **raw:**
-   - Enables the inclusion of raw SQL expressions in a query, providing flexibility for complex queries and custom database operations. Exercise caution to prevent SQL injection vulnerabilities.
-20. **this._having**
-  - Specifies conditions on aggregated data, similar to the WHERE clause but used for aggregate functions. For example, filtering groups created by GROUP BY.
-
-## ***Here are the descriptions for the provided `where` and `on` operations with examples***
-***
-
-### Where Operations:
-
-1. **where:-**
-   - Filters records where the 'id' is equal to 1223.
-   ```JavaScript
-    where: {
-            id: 1223,
-          }
-    ```
-
-2. **whereOr:-**
-   - Filters records where the 'id' is equal to 1223 using the logical OR operator, allowing for multiple conditions.
-   ```JavaScript
-    whereOr: {
-                id: 1223,
-            }
-    ```
-
-3. **whereIn:-**
-   - Filters records where the 'id' is either 1 or 1221, allowing for multiple values using the IN clause.
-   ```JavaScript
-        whereIn: {
-                id: [1, 1221],
-            }
-   ```
-
-4. **whereNotIn:-**
-   - Filters records where the 'id' is not in the list [1, 1221], excluding records with specified values.
-   ```JavaScript
-     whereNotIn: {
-             id: [1, 1221],
-            }
-   ```
-
-5. **whereIs:-**
-   - Filters records where the 'last_name' is explicitly set to NULL.
-   ```JavaScript
-        whereIs: {
-            last_name: "NULL",
-        }
-   ```
- 
-6. **whereIsNot:-**
-   - Filters records where the 'last_name' is not set to NULL.
-   ```JavaScript
-    whereIsNot: {
-            last_name: "NULL",
-            }
-   ```
-
-7. **whereRaw:-**
-   - Allows the use of raw SQL conditions, in this case filtering records where 'name' is 'mohan' and 'age' is 30.
-   ```JavaScript
-    whereRaw:"name='mohan' and age=30 "
-   ```
-
-### On Operations:
-
-1. **on:-**
-   - Specifies a condition for joining tables based on the 'id' being equal to 1223.
-   ```JavaScript
-    on: {
-            id: 1223,
-            }
-   ```
-
-2. **onOr:-**
-   - Specifies a condition for joining tables based on the 'id' being equal to 1223 using the logical OR operator.
-   ```JavaScript
-    onOr: {
-            id: 1223,
-            }
-   ```
-
-3. **onIn:-**
-   - Specifies a condition for joining tables based on the 'id' being either 1 or 1221, using the IN clause.
-   ```JavaScript
-    onIn: {
-            id: [1, 1221],
-            }
-   ```
-
-4. **onNotIn:-**
-   - Specifies a condition for joining tables based on the 'id' not being in the list [1, 1221], excluding certain values.
-   ```JavaScript
-    onNotIn: {
-            id: [1, 1221],
-            }
-   ```
-
-5. **onIs:-**
-   - Specifies a condition for joining tables based on the 'last_name' being explicitly set to NULL.
-   ```JavaScript
-    onIs: {
-        last_name: "NULL",
-    }
-   ```
-
-6. **onIsNot:-**
-   - Specifies a condition for joining tables based on the 'last_name' not being set to NULL.
-   ```JavaScript
-    onIsNot: {
-            last_name: "NULL",
-            }
-    ```
-
-7. **onRaw:-**
-   - Allows the use of raw SQL conditions for joining tables, in this case specifying conditions where 'name' is 'mohan' and 'age' is 30.
-   ```JavaScript
-    onRaw:"name='mohan' and age=30 "
-   ```
 
 ## License
 
