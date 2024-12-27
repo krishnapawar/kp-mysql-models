@@ -39,8 +39,5 @@
   "homepage": "https://github.com/krishnapawar/kp-mysql-models#readme",
   "engines": {
     "node": ">=12.0.0"
-  },
-  "dependencies": {
-    "mysql": "^2.18.1"
   }
 }
