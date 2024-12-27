@@ -171,11 +171,17 @@ await User.where({ id: 1 }).restore();
 // Fetch only soft-deleted records
 const deletedUsers = await User.onlyTrashed().get();
 
+// Fetch only active records
+const activedUsers = await User.withoutTrashed().get();
+
 // Soft delete all records
 let data = await user.trashedAll();
 
 // Soft restore all records
 let data = await user.restoreAll();
+
+// Soft clear trash records
+let data = await user.clearTrash();
 ```
 
 ## Let's see more method's Example
@@ -695,6 +701,7 @@ const dataj = await save({
 9. **`trashed()`**: Soft delete a record.
 10. **`trashedAll()`**: Soft delete all records.
 11. **`restoreAll()`**: Restore all soft-deleted records.
+12. **`clearTrash()`**: delete permanent trashed records.
 
 ### Relationship Methods
 
