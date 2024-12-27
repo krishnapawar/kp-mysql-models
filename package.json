@@ -1,7 +1,8 @@
 {
   "name": "@krishnapawar/kp-mysql-models",
-  "version": "1.5.1",
-  "description": "The `kp-mysql-models` library simplifies MySQL database interaction, streamlining tasks such as creating, inserting, updating, and deleting records, as well as handling complex queries like joins, pagination, and conditional operations. By offering an intuitive and efficient approach, it significantly reduces development time and effort.",
+  "version": "1.5.2",
+  "description": "`kp-mysql-models` is a lightweight, easy-to-use, and promise-based Node.js ORM tool designed for MySQL. It simplifies database interactions by offering features like model-based query building, CRUD operations, and support for advanced queries such as joins, pagination, and relationships. It is a powerful alternative to Sequelize. it significantly reduces development time and effort",
+
   "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,12 +12,35 @@
     "url": "git+https://github.com/krishnapawar/kp-mysql-models.git"
   },
   "keywords": [
-    "kp-mysql-models","@krishnapawar/kp-mysql-models","mysql-models-builder","model","mysql models","mysql","query","builder","model","mysql models","mysql query builder","query builder","mysql builder","kp","krishna pawar","krishnapawar"
+    "kp-mysql-models",
+    "@krishnapawar/kp-mysql-models",
+    "mysql-models-builder",
+    "model",
+    "mysql models",
+    "mysql",
+    "query",
+    "builder",
+    "mysql query builder",
+    "query builder",
+    "promise-based ORM",
+    "Node.js ORM",
+    "MySQL ORM",
+    "Sequelize alternative",
+    "easy ORM",
+    "database models",
+    "krishna pawar",
+    "kp"
   ],
-  "author": "krishna pawar <krishnapawar90906@gmail.com>",
+  "author": "Krishna Pawar <krishnapawar90906@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/krishnapawar/kp-mysql-models/issues"
   },
-  "homepage": "https://github.com/krishnapawar/kp-mysql-models#readme"
+  "homepage": "https://github.com/krishnapawar/kp-mysql-models#readme",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "dependencies": {
+    "mysql": "^2.18.1"
+  }
 }
