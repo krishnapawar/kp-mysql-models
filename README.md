@@ -136,6 +136,9 @@ const firstUser = await User.first();
 // Fetch all users
 const users = await User.get();
 
+//or
+const users = await User.findAll();
+
 // Filtered query
 const filteredUsers = await User.where({ role: "admin" }).get();
 ```
@@ -176,13 +179,13 @@ const deletedUsers = await User.onlyTrashed().get();
 const activedUsers = await User.withoutTrashed().get();
 
 // Soft delete all records
-let data = await user.trashedAll();
+let data = await User.trashedAll();
 
 // Soft restore all records
-let data = await user.restoreAll();
+let data = await User.restoreAll();
 
 // Soft clear trash records
-let data = await user.clearTrash();
+let data = await User.clearTrash();
 ```
 
 ## Let's see more method's Example
@@ -191,10 +194,10 @@ let data = await user.clearTrash();
 let data = await User.truncate();
 
 //delete record
-let data = await user.deleleAll();
+let data = await User.deleleAll();
 
 //delete record
-let data = await user.destroy({
+let data = await User.destroy({
   where: {
         id: 585,
       }
@@ -290,16 +293,6 @@ class User extends BaseModel  {
     menu_item(){
         return this.belongsTo('menu_items',{'menu_item_id':'menu_item_id'});
     }
-
-    //set all relation method in init
-    init(){
-        return[
-            this.orders(),
-            this.business(),
-            this.menu_item(),
-            this.order_items()
-        ]
-    }
     
 }
 
@@ -364,39 +357,47 @@ Retrieve data from multiple nested tables
 
 ```javaScript
 // example 3
+
 let data = await User.where('id',1).with({
-        'business':(q)=>q.setWith({
-            "orders":(q)=>q.setWith({
-                'order_items':(q)=>q.setWith('menu_item')
-                })
-        })
+        'business':"orders"
     }).get();
 
-// example 4 adding condition in with method
+// --------------------------------------------
 let data = await User.where('id',1).with({
-        'business':(q)=>q.setWith({
-            "orders":(q)=>q.setWith({
-                'order_items':(q)=>q.setWith('menu_item')
-                },{
-                  where:{
-                    "order_id": 1
-                    }
-                })
-        })
+        'business':"orders"
+    },{
+      where:{
+        'business_status':'active'
+      }
+    }).get();
+    
+// Or------------------------------------------
+let data = await User.where('id',1).with({
+        'business':{
+          with: "orders",
+          where:{
+            'business_status':'active'
+          }
+        }
     }).get();
 
-// example 5 adding complex raletion in easy way using with method
+//--------------------------------------------
 let data = await User.where('id',1).with({
-        'business':(q)=>q.setWith({
-            "orders":(q)=>q.setWith({
-                'order_items':(q)=>q.setWith('menu_item')
-                },{
-                  where:{
+        'business':{
+          with: {
+            "orders":{
+              with:"order_items",
+              where:{
                     "order_id": 1
-                    }
-                })
-        })
-    }).with('menu_item',{where:{id:1}}).get();
+                }
+            },
+            where:{
+              'business_status':'active'
+            }
+          }
+      }
+    })
+    .with('menu_item',{where:{id:1}}).get();
 
 ```
 ***Note:-*** the key same as relation method name that we write in model 
@@ -1255,7 +1256,6 @@ const collection = collect(items);
 // Paginate the collection with 3 items per page, and get page 2
 const paginated = collection.paginate(3, 2);
 
-console.log(paginated);
 // {
 //   data: Collection { items: [ 4, 5, 6 ] },
 //   currentPage: 2,
